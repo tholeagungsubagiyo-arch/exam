@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ExamBrowser Mobile Kiosk</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Proteksi interaksi & seleksi teks */
+    body {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 font-sans text-slate-100 antialiased min-h-screen flex flex-col justify-center items-center p-0 sm:p-4">
+
+  <!-- Main Mobile App Wrapper -->
+  <div id="app-container" class="max-w-md w-full bg-slate-950 min-h-screen sm:min-h-[840px] sm:max-h-[90vh] sm:rounded-3xl flex flex-col shadow-2xl relative overflow-hidden border border-slate-800">
+
+    <!-- ================= 1. LAYAR DEPAN SISWA (STUDENT SCREEN) ================= -->
+    <div id="student-screen" class="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-y-auto">
+      <!-- Header Bar -->
+      <div class="flex justify-between items-center pt-2 mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white text-xs shadow-lg shadow-blue-600/30">
+            EB
+          </div>
+          <div>
+            <h1 class="text-xs font-bold text-slate-200 tracking-wider">EXAMBROWSER</h1>
+            <p class="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Kiosk Engine Ready
+            </p>
+          </div>
+        </div>
+
+        <button onclick="openAdminPinModal()" class="p-2.5 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition border border-slate-800 flex items-center gap-1.5 text-xs font-medium">
+          <i data-lucide="settings" class="w-4 h-4 text-blue-400"></i>
+          <span>Admin</span>
+        </button>
+      </div>
+
+      <!-- School & Exam Info Card -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 text-center my-auto space-y-4 shadow-xl">
+        <div class="w-16 h-16 bg-blue-600/15 border border-blue-500/30 text-blue-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+          <i data-lucide="shield-check" class="w-8 h-8"></i>
+        </div>
+
+        <div>
+          <span id="disp-school-name" class="inline-block text-[11px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 mb-2">
+            SMA NEGERI 1 EDUKASI
+          </span>
+          <h2 id="disp-exam-title" class="text-xl font-extrabold text-white tracking-tight">
+            Penilaian Akhir Semester (PAS)
+          </h2>
+        </div>
+
+        <div class="flex justify-center items-center gap-4 text-xs text-slate-400 border-t border-slate-800/80 pt-3">
+          <span class="flex items-center gap-1.5 font-medium">
+            <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+            <span id="disp-duration">90</span> Menit
+          </span>
+          <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+          <span class="flex items-center gap-1.5 font-medium">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+            Max <span id="disp-max-violations">3</span>x Keluar
+          </span>
+        </div>
+      </div>
+
+      <!-- Student Input Form -->
+      <div class="space-y-3 my-4">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Nama Lengkap Peserta</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input type="text" id="input-student-name" placeholder="Masukkan Nama Lengkap" class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">NIS / Nomor Ujian</label>
+          <div class="relative">
+            <i data-lucide="credit-card" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input type="text" id="input-student-nis" placeholder="Masukkan NIS / Nomor Peserta" class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+          </div>
+        </div>
+
+        <div id="token-group" class="hidden">
+          <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Token Masuk Ujian</label>
+          <div class="relative">
+            <i data-lucide="key" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input type="text" id="input-student-token" placeholder="TOKEN" class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs text-blue-400 font-mono font-bold uppercase tracking-widest placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <div class="pb-2">
+        <button onclick="startExamProcess()" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 text-sm">
+          <i data-lucide="play-circle" class="w-5 h-5"></i>
+          <span>MULAI UJIAN SEKARANG</span>
+        </button>
+      </div>
+
+      <p class="text-[10px] text-center text-slate-600">
+        Modul Keamanan Kiosk Active &bull; Sistem Pengawasan Otomatis
+      </p>
+    </div>
+
+    <!-- ================= 2. LAYAR KIOSK UJIAN (EXAM SCREEN ENGINE) ================= -->
+    <div id="exam-screen" class="hidden flex-1 flex-col bg-slate-950 relative">
+      <!-- Floating Protected Header Bar -->
+      <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 py-2 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+          <span id="active-student-name" class="text-xs font-semibold text-slate-200 truncate max-w-[120px]">Siswa</span>
+        </div>
+
+        <!-- Right Controls (Timer & Violation Counter) -->
+        <div class="flex items-center gap-2">
+          <div class="bg-slate-950 border border-slate-800 text-blue-400 px-2.5 py-1 rounded-lg text-xs font-mono font-bold flex items-center gap-1">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span id="exam-timer">00:00:00</span>
+          </div>
+
+          <div class="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+            <span id="violation-count">0/3</span>
+          </div>
+
+          <button onclick="openAdminPinModal()" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Loader Iframe -->
+      <div id="iframe-loader" class="absolute inset-0 top-10 bg-slate-950 z-10 flex flex-col items-center justify-center space-y-3 text-slate-400">
+        <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-xs font-medium">Memuat Halaman Ujian...</span>
+      </div>
+
+      <!-- Iframe Container tempat Web Ujian Dimuat -->
+      <div class="flex-1 w-full h-full relative overflow-hidden bg-white">
+        <iframe id="exam-iframe" src="" allow="camera; microphone; display-capture"></iframe>
+      </div>
+    </div>
+
+    <!-- ================= 3. LOCK SCREEN (PERINGATAN PELANGGARAN) ================= -->
+    <div id="lock-screen" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex flex-col justify-center items-center p-6 text-center space-y-5">
+      <div class="w-20 h-20 bg-red-600/20 border-2 border-red-500 text-red-400 rounded-full flex items-center justify-center animate-bounce shadow-2xl shadow-red-600/30">
+        <i data-lucide="shield-alert" class="w-10 h-10"></i>
+      </div>
+
+      <div class="space-y-2">
+        <h2 class="text-2xl font-black text-white uppercase tracking-wider">UJIAN TERKUNCI!</h2>
+        <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+          Anda terdeteksi melakukan pelanggaran dengan meninggalkan halaman ujian melebihi batas toleransi yang diizinkan.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 w-full max-w-xs text-xs space-y-2">
+        <div class="flex justify-between text-slate-400">
+          <span>Status Pelanggaran:</span>
+          <span id="lock-violation-text" class="font-bold text-red-400">3 / 3</span>
+        </div>
+        <div class="flex justify-between text-slate-400">
+          <span>Tindakan:</span>
+          <span class="font-bold text-slate-200">Minta Bantuan Pengawas</span>
+        </div>
+      </div>
+
+      <div class="w-full max-w-xs space-y-2">
+        <button onclick="openAdminPinModal()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-xs">
+          <i data-lucide="key" class="w-4 h-4"></i>
+          <span>BUKA KUNCI (PIN ADMIN)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= MODAL ADMIN PIN ================= -->
+    <div id="modal-admin-pin" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 w-full max-w-xs rounded-2xl p-5 text-center space-y-4 text-white">
+        <div class="w-12 h-12 bg-slate-800 text-blue-400 rounded-xl flex items-center justify-center mx-auto border border-slate-700">
+          <i data-lucide="lock" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-base text-white">PIN Otentikasi Admin</h3>
+          <p class="text-xs text-slate-400 mt-1">Masukkan PIN untuk membuka pengaturan atau membuka kunci aplikasi.</p>
+        </div>
+
+        <div>
+          <input type="password" id="admin-pin-input" maxlength="6" placeholder="******" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 text-center text-xl font-mono tracking-widest text-white focus:ring-2 focus:ring-blue-500 outline-none">
+          <p id="pin-error-msg" class="text-red-400 text-xs mt-1.5 hidden font-medium">PIN yang Anda masukkan salah!</p>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button onclick="closeAdminPinModal()" class="flex-1 py-2.5 border border-slate-700 rounded-xl font-semibold text-xs text-slate-300 hover:bg-slate-800">
+            Batal
+          </button>
+          <button onclick="verifyAdminPin()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold text-xs text-white">
+            Verifikasi
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL PANEL KONFIGURASI ADMIN ================= -->
+    <div id="modal-admin-panel" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-3xl p-6 text-white space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="sliders" class="w-5 h-5 text-blue-400"></i>
+            <h3 class="font-bold text-base">Panel Pengaturan Admin</h3>
+          </div>
+          <button onclick="closeAdminPanel()" class="text-slate-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <form id="admin-config-form" onsubmit="saveAdminConfig(event)" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block text-slate-400 font-semibold mb-1">Link Ujian (Google Form / CBT Web)</label>
+            <input type="url" id="cfg-target-url" required placeholder="https://forms.google.com/..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-blue-400 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none">
+            <p class="text-[10px] text-slate-500 mt-1">*Link ini aman dan disembunyikan sepenuhnya dari siswa.</p>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 font-semibold mb-1">Nama Sekolah / Instansi</label>
+            <input type="text" id="cfg-school-name" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+
+          <div>
+            <label class="block text-slate-400 font-semibold mb-1">Judul Ujian / Mata Pelajaran</label>
+            <input type="text" id="cfg-exam-title" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Durasi Timer (Menit)</label>
+              <input type="number" id="cfg-duration" min="5" max="300" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Max Toleransi Keluar</label>
+              <input type="number" id="cfg-max-violations" min="1" max="10" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Token Ujian Siswa</label>
+              <input type="text" id="cfg-student-token" placeholder="Kosongkan jika bebas" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-100 font-mono uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">PIN Admin Baru</label>
+              <input type="password" id="cfg-admin-pin" maxlength="6" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-100 font-mono focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 flex gap-2">
+            <button type="button" onclick="closeAdminPanel()" class="w-1/3 py-3 border border-slate-800 rounded-xl font-semibold text-slate-300 hover:bg-slate-800">
+              Batal
+            </button>
+            <button type="submit" class="w-2/3 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center justify-center gap-1.5">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>Simpan Pengaturan</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= MODAL PERINGATAN PELANGGARAN ================= -->
+    <div id="modal-violation-alert" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-slate-900 border-2 border-red-500 w-full max-w-xs rounded-2xl p-5 text-center space-y-3 text-white">
+        <div class="w-12 h-12 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-base text-red-400">Peringatan Keamanan!</h4>
+          <p class="text-xs text-slate-300 mt-1">Anda terdeteksi **keluar/berpindah dari layar ujian**!</p>
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-xs">
+          Jumlah Pelanggaran: <span id="violation-alert-count" class="font-bold text-red-400">1</span> / <span id="violation-alert-max">3</span>
+        </div>
+        <button onclick="dismissViolationAlert()" class="w-full py-2.5 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-xs text-white">
+          Saya Mengerti (Kembali Ujian)
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Konfigurasi Standar Aplikasi
+    const DEFAULT_CONFIG = {
+      targetUrl: "https://docs.google.com/forms/d/e/1FAIpQLSc_Y6uJkP1qVj6-bNq2S8Q3W9k/viewform?embedded=true",
+      schoolName: "SMA NEGERI 1 EDUKASI",
+      examTitle: "Penilaian Akhir Semester (PAS)",
+      durationMinutes: 90,
+      maxViolations: 3,
+      studentToken: "", // Kosong berarti tanpa token
+      adminPin: "123456"
+    };
+
+    // State Global
+    let config = { ...DEFAULT_CONFIG };
+    let currentViolations = 0;
+    let isExamRunning = false;
+    let timerSeconds = 0;
+    let timerInterval = null;
+
+    // Load saat Pertama kali Dimuat
+    window.onload = function() {
+      lucide.createIcons();
+      loadConfigFromStorage();
+      updateWelcomeUI();
+      setupSecurityListeners();
+    };
+
+    // --- LOCALSTORAGE & KONFIGURASI ADMIN ---
+    function loadConfigFromStorage() {
+      const saved = localStorage.getItem('exambrowser_kiosk_config');
+      if (saved) {
+        try {
+          config = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+        } catch (e) {
+          config = { ...DEFAULT_CONFIG };
+        }
+      }
+    }
+
+    function saveAdminConfig(e) {
+      e.preventDefault();
+      config.targetUrl = document.getElementById('cfg-target-url').value.trim();
+      config.schoolName = document.getElementById('cfg-school-name').value.trim();
+      config.examTitle = document.getElementById('cfg-exam-title').value.trim();
+      config.durationMinutes = parseInt(document.getElementById('cfg-duration').value) || 90;
+      config.maxViolations = parseInt(document.getElementById('cfg-max-violations').value) || 3;
+      config.studentToken = document.getElementById('cfg-student-token').value.trim().toUpperCase();
+      config.adminPin = document.getElementById('cfg-admin-pin').value.trim();
+
+      localStorage.setItem('exambrowser_kiosk_config', JSON.stringify(config));
+      closeAdminPanel();
+      updateWelcomeUI();
+      alert('Pengaturan Berhasil Disimpan!');
+    }
+
+    function updateWelcomeUI() {
+      document.getElementById('disp-school-name').innerText = config.schoolName;
+      document.getElementById('disp-exam-title').innerText = config.examTitle;
+      document.getElementById('disp-duration').innerText = config.durationMinutes;
+      document.getElementById('disp-max-violations').innerText = config.maxViolations;
+
+      const tokenGroup = document.getElementById('token-group');
+      if (config.studentToken && config.studentToken.length > 0) {
+        tokenGroup.classList.remove('hidden');
+      } else {
+        tokenGroup.classList.add('hidden');
+      }
+    }
+
+    // --- VERIFIKASI PIN & MODAL ADMIN ---
+    function openAdminPinModal() {
+      document.getElementById('admin-pin-input').value = '';
+      document.getElementById('pin-error-msg').classList.add('hidden');
+      document.getElementById('modal-admin-pin').classList.remove('hidden');
+      setTimeout(() => document.getElementById('admin-pin-input').focus(), 100);
+    }
+
+    function closeAdminPinModal() {
+      document.getElementById('modal-admin-pin').classList.add('hidden');
+    }
+
+    function verifyAdminPin() {
+      const inputPin = document.getElementById('admin-pin-input').value.trim();
+      if (inputPin === config.adminPin) {
+        closeAdminPinModal();
+        if (!document.getElementById('lock-screen').classList.contains('hidden')) {
+          resetLockState();
+        } else {
+          openAdminPanel();
+        }
+      } else {
+        document.getElementById('pin-error-msg').classList.remove('hidden');
+      }
+    }
+
+    function openAdminPanel() {
+      document.getElementById('cfg-target-url').value = config.targetUrl;
+      document.getElementById('cfg-school-name').value = config.schoolName;
+      document.getElementById('cfg-exam-title').value = config.examTitle;
+      document.getElementById('cfg-duration').value = config.durationMinutes;
+      document.getElementById('cfg-max-violations').value = config.maxViolations;
+      document.getElementById('cfg-student-token').value = config.studentToken;
+      document.getElementById('cfg-admin-pin').value = config.adminPin;
+
+      document.getElementById('modal-admin-panel').classList.remove('hidden');
+    }
+
+    function closeAdminPanel() {
+      document.getElementById('modal-admin-panel').classList.add('hidden');
+    }
+
+    // --- EXECUTE UJIAN (FULLSCREEN & TIMER) ---
+    function startExamProcess() {
+      const name = document.getElementById('input-student-name').value.trim();
+      const nis = document.getElementById('input-student-nis').value.trim();
+
+      if (!name || !nis) {
+        alert('Mohon lengkapi Nama Lengkap dan NIS / Nomor Ujian Anda.');
+        return;
+      }
+
+      // Validasi Token jika diaktifkan
+      if (config.studentToken && config.studentToken.length > 0) {
+        const inputToken = document.getElementById('input-student-token').value.trim().toUpperCase();
+        if (inputToken !== config.studentToken) {
+          alert('Token Ujian yang Anda masukkan salah!');
+          return;
+        }
+      }
+
+      // Aktifkan Mode Fullscreen
+      requestFullscreen();
+
+      isExamRunning = true;
+      currentViolations = 0;
+      timerSeconds = config.durationMinutes * 60;
+
+      // Update Kiosk Header
+      document.getElementById('active-student-name').innerText = name;
+      document.getElementById('violation-count').innerText = `0/${config.maxViolations}`;
+
+      // Memuat Iframe
+      const iframe = document.getElementById('exam-iframe');
+      const loader = document.getElementById('iframe-loader');
+      loader.classList.remove('hidden');
+      iframe.src = config.targetUrl;
+
+      iframe.onload = function() {
+        loader.classList.add('hidden');
+      };
+
+      // Ganti Layar ke Kiosk Engine
+      document.getElementById('student-screen').classList.add('hidden');
+      document.getElementById('exam-screen').classList.remove('hidden');
+      document.getElementById('exam-screen').classList.add('flex');
+
+      startTimer();
+    }
+
+    function requestFullscreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {});
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      }
+    }
+
+    function startTimer() {
+      updateTimerDisplay();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          alert('Waktu Ujian Telah Selesai!');
+          return;
+        }
+        timerSeconds--;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const h = Math.floor(timerSeconds / 3600);
+      const m = Math.floor((timerSeconds % 3600) / 60);
+      const s = timerSeconds % 60;
+      document.getElementById('exam-timer').innerText = 
+        `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // --- KEAMANAN & PENGATURAN PELANGGARAN ---
+    function setupSecurityListeners() {
+      // Blokir Klik Kanan
+      document.addEventListener('contextmenu', e => e.preventDefault());
+
+      // Deteksi Pindah Aplikasi / Tab Switching
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isExamRunning) {
+          triggerViolation();
+        }
+      });
+
+      window.addEventListener('blur', () => {
+        if (isExamRunning) {
+          triggerViolation();
+        }
+      });
+
+      // Mencegah shortcut keyboard dasar
+      document.addEventListener('keydown', e => {
+        if (e.key === 'F12' || (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u' || e.key === 'i'))) {
+          e.preventDefault();
+        }
+      });
+    }
+
+    function triggerViolation() {
+      if (!isExamRunning) return;
+
+      currentViolations++;
+      document.getElementById('violation-count').innerText = `${currentViolations}/${config.maxViolations}`;
+      document.getElementById('violation-alert-count').innerText = currentViolations;
+      document.getElementById('violation-alert-max').innerText = config.maxViolations;
+
+      if (currentViolations >= config.maxViolations) {
+        lockExamScreen();
+      } else {
+        document.getElementById('modal-violation-alert').classList.remove('hidden');
+      }
+    }
+
+    function dismissViolationAlert() {
+      document.getElementById('modal-violation-alert').classList.add('hidden');
+      requestFullscreen();
+    }
+
+    function lockExamScreen() {
+      isExamRunning = false;
+      clearInterval(timerInterval);
+      document.getElementById('modal-violation-alert').classList.add('hidden');
+      document.getElementById('exam-screen').classList.add('hidden');
+      document.getElementById('exam-screen').classList.remove('flex');
+      
+      document.getElementById('lock-violation-text').innerText = `${currentViolations} / ${config.maxViolations}`;
+      document.getElementById('lock-screen').classList.remove('hidden');
+    }
+
+    function resetLockState() {
+      currentViolations = 0;
+      document.getElementById('lock-screen').classList.add('hidden');
+      document.getElementById('student-screen').classList.remove('hidden');
+      document.getElementById('exam-iframe').src = "";
+    }
+  </script>
+</body>
+</html>
